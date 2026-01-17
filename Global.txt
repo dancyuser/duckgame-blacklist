@@ -1,0 +1,3 @@
+AutoMuteRatings=1
+RatingNames=1:Spammer,2:Cheater
+RatingPrefixes=1:[SPAM],2:[CHEAT]
