@@ -20,16 +20,34 @@ jobs:
           URL: ${{ github.event.head_commit.url }}
         run: |
           python - <<'PY'
-          import os, json, urllib.request
-          wh = os.environ["DISCORD_WEBHOOK_URL"]
+          import os, json, urllib.request, urllib.error
+      
+          wh = os.environ["DISCORD_WEBHOOK_URL"].strip()
           repo = os.environ["REPO"]
           actor = os.environ["ACTOR"]
           ref = os.environ["REF"]
           sha = (os.environ.get("SHA") or "")[:7]
           msg = (os.environ.get("MSG") or "").splitlines()[0][:200]
           url = os.environ.get("URL") or ""
+      
           content = f"**{repo}**: {actor} → `{ref}` `{sha}` — {msg}\n{url}"
           payload = json.dumps({"content": content}).encode("utf-8")
-          req = urllib.request.Request(wh, data=payload, headers={"Content-Type":"application/json"})
-          urllib.request.urlopen(req).read()
+      
+          headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": f"DiscordBot (https://github.com/{repo}, 1.0) GitHubActions",
+          }
+      
+          req = urllib.request.Request(wh, data=payload, headers=headers, method="POST")
+      
+          try:
+            with urllib.request.urlopen(req, timeout=10) as r:
+              body = r.read().decode("utf-8", "replace")
+              print("OK", r.status, body)
+          except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", "replace")
+            print("HTTPERROR", e.code, e.reason)
+            print(body)
+            raise
           PY
