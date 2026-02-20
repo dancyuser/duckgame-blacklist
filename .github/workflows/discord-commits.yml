@@ -3,7 +3,7 @@ name: Discord commit alerts
 on:
   push:
     # можно сузить до веток:
-    # branches: ["main"]
+    branches: ["main"]
 
 jobs:
   notify:
